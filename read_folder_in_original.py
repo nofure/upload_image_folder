@@ -10,7 +10,7 @@ def search_for_direct_original_folders(base_path):
             original_folder_path = os.path.join(subdir_path, 'original')
             
             if os.path.isdir(original_folder_path):
-                print(f"\nFound 'original' folder at: {original_folder_path}")
+                # print(f"\nFound 'original' folder at: {original_folder_path}")
                 
                 try:
                     # List all items in the "original" folder
