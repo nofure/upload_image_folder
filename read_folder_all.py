@@ -19,12 +19,11 @@ def update_product():
         }
 
         # Dynamically add arr_image_url fields
-        # for index, image_url in enumerate(image_urls):
-        #     payload[f'data[0][arr_image_url][{index}]'] = image_url
+        for index, image_url in enumerate(image_urls):
+            payload[f'data[0][arr_image_url][{index}]'] = image_url
         
         files = []
         try:
-            print(f"payload {payload}")
             response = requests.post(url, headers=headers, data=payload, files=files)
             response.raise_for_status()  # Raise an exception for HTTP error responses
             print(f"Updated product {folder_id}: {response.text}")
@@ -68,7 +67,7 @@ def upload_image(folder_id, image_path, image_name):
         # Extract and store the URL from the 'data' field
         image_url = response_json.get('data')
         if image_url:
-            # print(f"Uploaded image URL: {image_url}")
+            print(f"Uploaded image URL: {image_url}")
             if folder_id not in folder_image_urls:
                 folder_image_urls[folder_id] = []
             folder_image_urls[folder_id].append(image_url)
@@ -89,7 +88,7 @@ def is_image_file(filename):
 
 def list_image_files(folder_id, folder_path, is_thumbnail=False):
     try:
-        # print(f"\nLevel 1 Folder: {folder_id}")
+        print(f"\nLevel 1 Folder: {folder_id}")
         items = os.listdir(folder_path)
         # Filter and sort image files by name
         image_files = sorted(
@@ -113,12 +112,16 @@ def search_files(base_path):
         
         for subdir in immediate_subdirs:
             subdir_path = os.path.join(base_path, subdir)
+            thumbnail_folder_path = os.path.join(subdir_path, 'other', 'thumbnail')
             original_folder_path = os.path.join(subdir_path, 'original')
             
-            if os.path.isdir(original_folder_path):
+            if os.path.isdir(thumbnail_folder_path):
+                list_image_files(subdir, original_folder_path, is_thumbnail=True)
+                list_image_files(subdir, thumbnail_folder_path)
+            elif os.path.isdir(original_folder_path):
                 list_image_files(subdir, original_folder_path)
             else:
-                print(f" 'original' folder not found in: {subdir_path}")
+                print(f" Neither 'thumbnail' nor 'original' folders found in: {subdir_path}")
 
         # After processing all files, update product information
         update_product()
@@ -130,5 +133,5 @@ def show():
     print(f"folder_image_urls  {folder_image_urls}")
 
 # Example usage
-base_path = r'C:\Users\nice_voxngola\Downloads\product2'   # Replace with your base folder path
+base_path = r'C:\Users\nice_voxngola\Downloads\product'   # Replace with your base folder path
 search_files(base_path)
