@@ -24,7 +24,7 @@ def update_product():
 
     print(response.text)
 
-def upload_iamge(image_path,image_name):
+def upload_image(image_path,image_name):
     print(f"Uploading image '{image_name}'.")
     print(f"Image path: '{image_path}'.")
 
@@ -87,9 +87,11 @@ def list_image_files(folder_id,folder_path):
             for image_file in image_files:
                 # print(f"  {os.path.join(folder_path, image_file)}")
                 # print(f"{image_file}")
-                upload_iamge(os.path.join(folder_path, image_file),image_file)
+                upload_image(os.path.join(folder_path, image_file),image_file)
     except Exception as e:
         print(f"Error reading folder '{folder_path}': {e}")
+
+
 
 def search_files(base_path):
     try:
@@ -100,13 +102,14 @@ def search_files(base_path):
             subdir_path = os.path.join(base_path, subdir)
             thumbnail_folder_path = os.path.join(subdir_path, 'other', 'thumbnail')
             original_folder_path = os.path.join(subdir_path, 'original')
-            
             # print(f"\nLevel 1 Folder: {subdir}")
             
             if os.path.isdir(thumbnail_folder_path):
                 # print(f" 'Thumbnail' folder found at: {thumbnail_folder_path}")
                 # print(f" Files in 'thumbnail' folder:")
+
                 list_image_files(subdir,thumbnail_folder_path)
+
             elif os.path.isdir(original_folder_path):
                 # print(f" 'Thumbnail' folder not found. Showing files in 'original' folder at: {original_folder_path}")
                 list_image_files(subdir,original_folder_path)
