@@ -2,7 +2,7 @@ import os
 import requests
 
 # Dictionary to store folder_id -> image_url mapping
-folder_image_urls =  {'11': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041721_2022-01-13_1642046464650.png'], '1115': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041721_2022-08-17_1660725211880.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041722_2022-08-17_1660725212239.jpg'], '5103': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041722_2023-12-04_1701627851853.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041723_2023-12-04_1701628667138.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041723_2023-12-04_1701628668048.png']}
+folder_image_urls =  {}
 def update_product():
     url = "https://cloud.hangles.com/OpenApi/updateProduct"
     
@@ -22,15 +22,14 @@ def update_product():
             payload[f'data[0][arr_image_url][{index}]'] = image_url
         
         files = []
-        print(f"Updated product {payload}")
-        # try:
-        #     response = requests.post(url, headers=headers, data=payload, files=files)
-        #     response.raise_for_status()  # Raise an exception for HTTP error responses
-        #     print(f"Updated product {folder_id}: {response.text}")
-        # except requests.exceptions.HTTPError as http_err:
-        #     print(f"HTTP error occurred while updating product {folder_id}: {http_err}")
-        # except Exception as err:
-        #     print(f"Other error occurred while updating product {folder_id}: {err}")
+        try:
+            response = requests.post(url, headers=headers, data=payload, files=files)
+            response.raise_for_status()  # Raise an exception for HTTP error responses
+            print(f"Updated product {folder_id}: {response.text}")
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred while updating product {folder_id}: {http_err}")
+        except Exception as err:
+            print(f"Other error occurred while updating product {folder_id}: {err}")
 
 def upload_image(folder_id, image_path, image_name):
     print(f"Uploading image '{image_name}'.")
