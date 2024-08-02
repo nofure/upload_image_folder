@@ -1,30 +1,38 @@
 import os
 import requests
 
-
+# Dictionary to store folder_id -> image_url mapping
+folder_image_urls =  {'11': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041721_2022-01-13_1642046464650.png'], '1115': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041721_2022-08-17_1660725211880.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041722_2022-08-17_1660725212239.jpg'], '5103': ['https://diigtl8ee2xmd.cloudfront.net/product/20240802041722_2023-12-04_1701627851853.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041723_2023-12-04_1701628667138.png', 'https://diigtl8ee2xmd.cloudfront.net/product/20240802041723_2023-12-04_1701628668048.png']}
 def update_product():
     url = "https://cloud.hangles.com/OpenApi/updateProduct"
-
-    payload = {'data[0][product_id]': '240600003200004',
-    'data[0][image_url]': '00',
-    'data[0][arr_image_url][0]': '0',
-    'data[0][arr_image_url][1]': '1',
-    'data[0][arr_image_url][2]': '2',
-    'data[0][arr_image_url][3]': '3',
-    'data[0][arr_image_url][4]': '4',
-    'data[0][arr_image_url][5]': '5'}
-    files=[
-
-    ]
+    
     headers = {
-    'X-Authorization': 'Bearer bxcdiyOoCxRiSza0OKINJ9rUU7Vu3uWFvoXE5ASFVeSZ9i67Ez'
+        'X-Authorization': 'Bearer bxcdiyOoCxRiSza0OKINJ9rUU7Vu3uWFvoXE5ASFVeSZ9i67Ez'
     }
 
-    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+    for folder_id, image_urls in folder_image_urls.items():
+        # Prepare the payload with dynamic image URLs
+        payload = {
+            'data[0][product_id]': folder_id,
+            'data[0][image_url]': image_urls[0] if image_urls else '',  # Primary image URL
+        }
 
-    print(response.text)
+        # Dynamically add arr_image_url fields
+        for index, image_url in enumerate(image_urls):
+            payload[f'data[0][arr_image_url][{index}]'] = image_url
+        
+        files = []
+        print(f"Updated product {payload}")
+        # try:
+        #     response = requests.post(url, headers=headers, data=payload, files=files)
+        #     response.raise_for_status()  # Raise an exception for HTTP error responses
+        #     print(f"Updated product {folder_id}: {response.text}")
+        # except requests.exceptions.HTTPError as http_err:
+        #     print(f"HTTP error occurred while updating product {folder_id}: {http_err}")
+        # except Exception as err:
+        #     print(f"Other error occurred while updating product {folder_id}: {err}")
 
-def upload_image(image_path,image_name):
+def upload_image(folder_id, image_path, image_name):
     print(f"Uploading image '{image_name}'.")
     print(f"Image path: '{image_path}'.")
 
@@ -56,10 +64,13 @@ def upload_image(image_path,image_name):
         # Parse the JSON response
         response_json = response.json()
         
-        # Extract and print the URL from the 'data' field
+        # Extract and store the URL from the 'data' field
         image_url = response_json.get('data')
         if image_url:
             print(f"Uploaded image URL: {image_url}")
+            if folder_id not in folder_image_urls:
+                folder_image_urls[folder_id] = []
+            folder_image_urls[folder_id].append(image_url)
         else:
             print("No URL returned in response data.")
     except requests.exceptions.HTTPError as http_err:
@@ -70,13 +81,12 @@ def upload_image(image_path,image_name):
         # Ensure the file is closed after uploading
         files[0][1][1].close()
 
-
 def is_image_file(filename):
     # Define image file extensions
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'}
     return any(filename.lower().endswith(ext) for ext in image_extensions)
 
-def list_image_files(folder_id,folder_path):
+def list_image_files(folder_id, folder_path):
     try:
         print(f"\nLevel 1 Folder: {folder_id}")
         items = os.listdir(folder_path)
@@ -85,13 +95,9 @@ def list_image_files(folder_id,folder_path):
             print(f"  No image files found in '{folder_path}'.")
         else:
             for image_file in image_files:
-                # print(f"  {os.path.join(folder_path, image_file)}")
-                # print(f"{image_file}")
-                upload_image(os.path.join(folder_path, image_file),image_file)
+                upload_image(folder_id, os.path.join(folder_path, image_file), image_file)
     except Exception as e:
         print(f"Error reading folder '{folder_path}': {e}")
-
-
 
 def search_files(base_path):
     try:
@@ -102,23 +108,24 @@ def search_files(base_path):
             subdir_path = os.path.join(base_path, subdir)
             thumbnail_folder_path = os.path.join(subdir_path, 'other', 'thumbnail')
             original_folder_path = os.path.join(subdir_path, 'original')
-            # print(f"\nLevel 1 Folder: {subdir}")
             
             if os.path.isdir(thumbnail_folder_path):
-                # print(f" 'Thumbnail' folder found at: {thumbnail_folder_path}")
-                # print(f" Files in 'thumbnail' folder:")
-
-                list_image_files(subdir,thumbnail_folder_path)
-
+                list_image_files(subdir, thumbnail_folder_path)
             elif os.path.isdir(original_folder_path):
-                # print(f" 'Thumbnail' folder not found. Showing files in 'original' folder at: {original_folder_path}")
-                list_image_files(subdir,original_folder_path)
+                list_image_files(subdir, original_folder_path)
             else:
                 print(f" Neither 'thumbnail' nor 'original' folders found in: {subdir_path}")
+
+        # After processing all files, update product information
+        for folder_id, image_urls in folder_image_urls.items():
+            update_product(folder_id, image_urls)
+    
     except Exception as e:
         print(f"Error accessing base path: {e}")
 
+def show():
+    print(f"folder_image_urls  {folder_image_urls}")
 # Example usage
 base_path = r'C:\Users\nice_voxngola\Downloads\product'   # Replace with your base folder path
-search_files(base_path)
-# python3 read_folder_in_original.py 
+# search_files(base_path)
+update_product()
