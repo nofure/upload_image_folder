@@ -2,7 +2,8 @@ import os
 import requests
 
 # Dictionary to store folder_id -> image_url mapping
-folder_image_urls =  {}
+folder_image_urls = {}
+
 def update_product():
     url = "https://cloud.hangles.com/OpenApi/updateProduct"
     
@@ -85,16 +86,22 @@ def is_image_file(filename):
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'}
     return any(filename.lower().endswith(ext) for ext in image_extensions)
 
-def list_image_files(folder_id, folder_path):
+def list_image_files(folder_id, folder_path, is_thumbnail=False):
     try:
         print(f"\nLevel 1 Folder: {folder_id}")
         items = os.listdir(folder_path)
-        image_files = [item for item in items if os.path.isfile(os.path.join(folder_path, item)) and is_image_file(item)]
+        # Filter and sort image files by name
+        image_files = sorted(
+            [item for item in items if os.path.isfile(os.path.join(folder_path, item)) and is_image_file(item)]
+        )
         if not image_files:
             print(f"  No image files found in '{folder_path}'.")
         else:
             for image_file in image_files:
                 upload_image(folder_id, os.path.join(folder_path, image_file), image_file)
+                if is_thumbnail:
+                    # Add the image URL to the folder_image_urls at index 0
+                    folder_image_urls[folder_id].insert(0, folder_image_urls[folder_id].pop())
     except Exception as e:
         print(f"Error reading folder '{folder_path}': {e}")
 
@@ -105,26 +112,22 @@ def search_files(base_path):
         
         for subdir in immediate_subdirs:
             subdir_path = os.path.join(base_path, subdir)
-            thumbnail_folder_path = os.path.join(subdir_path, 'other', 'thumbnail')
             original_folder_path = os.path.join(subdir_path, 'original')
             
-            if os.path.isdir(thumbnail_folder_path):
-                list_image_files(subdir, thumbnail_folder_path)
-            elif os.path.isdir(original_folder_path):
+            if os.path.isdir(original_folder_path):
                 list_image_files(subdir, original_folder_path)
             else:
-                print(f" Neither 'thumbnail' nor 'original' folders found in: {subdir_path}")
+                print(f" 'original' folder not found in: {subdir_path}")
 
         # After processing all files, update product information
-        for folder_id, image_urls in folder_image_urls.items():
-            update_product(folder_id, image_urls)
+        update_product()
     
     except Exception as e:
         print(f"Error accessing base path: {e}")
 
 def show():
     print(f"folder_image_urls  {folder_image_urls}")
+
 # Example usage
-base_path = r'C:\Users\nice_voxngola\Downloads\product'   # Replace with your base folder path
-# search_files(base_path)
-update_product()
+base_path = r'C:\Users\nice_voxngola\Downloads\product2'   # Replace with your base folder path
+search_files(base_path)
