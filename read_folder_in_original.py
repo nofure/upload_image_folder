@@ -34,8 +34,8 @@ def update_product():
             print(f"Other error occurred while updating product {folder_id}: {err}")
 
 def upload_image(folder_id, image_path, image_name):
-    print(f"Uploading image '{image_name}'.")
-    print(f"Image path: '{image_path}'.")
+    # print(f"Uploading image '{image_name}'.")
+    # print(f"Image path: '{image_path}'.")
 
     url = "https://hangles-env.com/api/uploadFile"
 
@@ -130,5 +130,5 @@ def show():
     print(f"folder_image_urls  {folder_image_urls}")
 
 # Example usage
-base_path = r'C:\Users\nice_voxngola\Downloads\product2'   # Replace with your base folder path
+base_path = r'C:\Users\nice_voxngola\Downloads\product'   # Replace with your base folder path
 search_files(base_path)
